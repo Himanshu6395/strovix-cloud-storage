@@ -15,7 +15,7 @@ export default function Profile() {
     setSaving(true);
     try {
       const res = await userApi.updateProfile({ name });
-      setUser(res.data);
+      setUser(res);
       await refreshUser();
       toast.success('Profile updated');
     } catch (err) {

@@ -8,4 +8,6 @@ public interface FileRepository extends JpaRepository<File, String> {
     List<File> findByFolderIdAndIsDeletedFalseAndUploadStatusOrderByName(String folderId, String uploadStatus);
     List<File> findByOwnerIdAndFolderIsNullAndIsDeletedFalseAndUploadStatusOrderByName(String ownerId, String uploadStatus);
     List<File> findByOwnerIdAndIsDeletedTrue(String ownerId);
+    long countByOwner_IdAndIsDeletedFalseAndUploadStatus(String ownerId, String uploadStatus);
+    List<File> findTop10ByOwner_IdAndIsDeletedFalseAndUploadStatusOrderByCreatedAtDesc(String ownerId, String uploadStatus);
 }

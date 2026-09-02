@@ -53,7 +53,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard'],
-    queryFn: () => activityApi.dashboard().then((r) => r.data),
+    queryFn: () => activityApi.dashboard(),
   });
 
   if (isLoading) return <LoadingSpinner label="Loading dashboard..." />;
@@ -216,7 +216,7 @@ export default function Dashboard() {
               {recentFiles.map((file) => {
                 const { Icon, tone } = fileIcon(file.mimeType, file.name);
                 return (
-                  <li key={file._id}>
+                  <li key={file.id || file._id}>
                     <button
                       type="button"
                       onClick={() => navigate('/drive')}
@@ -313,7 +313,7 @@ export default function Dashboard() {
                   const resource = item.file || item.folder;
                   const isFolder = Boolean(item.folder);
                   return (
-                    <li key={item._id}>
+                    <li key={item.id || item._id}>
                       <button
                         type="button"
                         onClick={() => navigate(isFolder ? '/drive' : '/starred')}
@@ -351,7 +351,7 @@ export default function Dashboard() {
           <ul className="grid gap-2 sm:grid-cols-2">
             {activities.slice(0, 6).map((item) => (
               <li
-                key={item._id}
+                key={item.id || item._id}
                 className="flex items-start gap-3 rounded-2xl border border-[var(--color-line)] bg-slate-50/60 px-3 py-3 dark:bg-slate-800/40"
               >
                 <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-[var(--color-accent)]" />

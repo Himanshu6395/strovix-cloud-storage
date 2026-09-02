@@ -37,7 +37,7 @@ export function AppShell({ children }) {
   const navigate = useNavigate();
   const storageQuery = useQuery({
     queryKey: ['storage'],
-    queryFn: () => userApi.storage().then((r) => r.data),
+    queryFn: () => userApi.storage(),
   });
 
   const onSearch = (e) => {
