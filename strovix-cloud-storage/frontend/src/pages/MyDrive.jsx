@@ -30,6 +30,7 @@ import { useUpload } from '../hooks/useUpload.js';
 import { fileApi } from '../services/file.api.js';
 import { starApi } from '../services/publicLink.api.js';
 import { loadPreviewObjectUrl, revokePreviewObjectUrl } from '../utils/filePreview.js';
+import { resourceId } from '../utils/resourceId.js';
 
 const FILTERS = [
   { id: 'all', label: 'All Files', icon: Sparkles },
@@ -72,7 +73,7 @@ export default function MyDrive() {
 
   const openItem = (item, type) => {
     if (type === 'folder') {
-      setFolderId(item._id);
+      setFolderId(resourceId(item));
       setActiveFilter('all');
     } else {
       handlePreview(item);
@@ -81,8 +82,9 @@ export default function MyDrive() {
 
   const handlePreview = async (file) => {
     try {
-      const res = await fileApi.getPreviewDownload(file._id);
-      const url = await loadPreviewObjectUrl(file, res.data.downloadUrl);
+      const res = await fileApi.getPreviewDownload(resourceId(file));
+      const downloadUrl = res?.downloadUrl || res?.url || res?.data?.downloadUrl;
+      const url = await loadPreviewObjectUrl(file, downloadUrl);
       setPreview((prev) => {
         revokePreviewObjectUrl(prev.url);
         return { file, url };
@@ -101,7 +103,8 @@ export default function MyDrive() {
 
   const onStar = async (item, type) => {
     try {
-      await starApi.star(type === 'file' ? { fileId: item._id } : { folderId: item._id });
+      const id = resourceId(item);
+      await starApi.star(type === 'file' ? { fileId: id } : { folderId: id });
       qc.invalidateQueries({ queryKey: ['starred'] });
       qc.invalidateQueries({ queryKey: ['folder-contents'] });
       toast.success(item.isStarred ? 'Unstarred' : 'Added to Starred');
@@ -351,7 +354,7 @@ export default function MyDrive() {
           files={filteredFiles}
           view={view}
           onOpen={openItem}
-          onDownload={(file) => downloadFile.mutate(file._id)}
+          onDownload={(file) => downloadFile.mutate(resourceId(file))}
           onRename={(item, type) => setRenameTarget({ item, type })}
           onDelete={(item, type) => setDeleteTarget({ item, type })}
           onShare={(item, type) => setShareTarget({ ...item, type })}
@@ -379,10 +382,11 @@ export default function MyDrive() {
         onClose={() => setRenameTarget(null)}
         loading={renameFile.isPending || renameFolder.isPending}
         onRename={async (name) => {
+          const id = resourceId(renameTarget.item);
           if (renameTarget.type === 'file') {
-            await renameFile.mutateAsync({ id: renameTarget.item._id, name });
+            await renameFile.mutateAsync({ id, name });
           } else {
-            await renameFolder.mutateAsync({ id: renameTarget.item._id, name });
+            await renameFolder.mutateAsync({ id, name });
           }
           setRenameTarget(null);
         }}
@@ -398,8 +402,13 @@ export default function MyDrive() {
         confirmLabel="Delete"
         danger
         onConfirm={async () => {
-          if (deleteTarget.type === 'file') await deleteFile.mutateAsync(deleteTarget.item._id);
-          else await deleteFolder.mutateAsync(deleteTarget.item._id);
+          const id = resourceId(deleteTarget.item);
+          if (!id) {
+            toast.error('Missing item id');
+            return;
+          }
+          if (deleteTarget.type === 'file') await deleteFile.mutateAsync(id);
+          else await deleteFolder.mutateAsync(id);
           setDeleteTarget(null);
         }}
       />
@@ -409,7 +418,7 @@ export default function MyDrive() {
         file={preview.file}
         previewUrl={preview.url}
         onClose={closePreview}
-        onDownload={(file) => downloadFile.mutate(file._id)}
+        onDownload={(file) => downloadFile.mutate(resourceId(file))}
       />
     </div>
   );

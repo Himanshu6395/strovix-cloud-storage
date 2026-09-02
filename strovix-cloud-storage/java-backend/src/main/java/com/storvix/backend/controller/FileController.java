@@ -39,11 +39,23 @@ public class FileController {
         return ResponseEntity.ok(ApiResponse.success("File uploaded successfully", file));
     }
 
-    @GetMapping("/{id}/download")
-    public ResponseEntity<ApiResponse<Map<String, String>>> getDownloadUrl(
+    @GetMapping({"/{id}", "/{id}/download"})
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getDownloadUrl(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable String id) {
         Map<String, String> data = fileService.getDownloadUrl(userDetails.getUser().getId(), id);
-        return ResponseEntity.ok(ApiResponse.success(data));
+        // Frontend expects downloadUrl; keep url for compatibility
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("downloadUrl", data.get("url"));
+        body.put("url", data.get("url"));
+        return ResponseEntity.ok(ApiResponse.success(body));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<FileResponse>> softDeleteFile(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String id) {
+        FileResponse file = fileService.softDeleteFile(userDetails.getUser().getId(), id);
+        return ResponseEntity.ok(ApiResponse.success("File moved to trash", file));
     }
 }

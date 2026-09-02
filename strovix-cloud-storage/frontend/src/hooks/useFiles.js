@@ -40,7 +40,8 @@ export function useDownloadFile() {
   return useMutation({
     mutationFn: async (id) => {
       const res = await fileApi.getDownload(id);
-      const url = res.data.downloadUrl;
+      const url = res?.downloadUrl || res?.url || res?.data?.downloadUrl;
+      if (!url) throw new Error('Download URL missing');
       if (url.startsWith('/')) {
         const token = localStorage.getItem('accessToken');
         const full = resolveApiUrl(url);
@@ -51,13 +52,13 @@ export function useDownloadFile() {
         const objectUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = objectUrl;
-        a.download = res.data.file?.name || 'download';
+        a.download = res?.file?.name || res?.data?.file?.name || 'download';
         a.click();
         URL.revokeObjectURL(objectUrl);
       } else {
         window.open(url, '_blank');
       }
-      return res.data;
+      return res;
     },
     onError: (err) => toast.error(err.message),
   });

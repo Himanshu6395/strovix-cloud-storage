@@ -1,5 +1,6 @@
 package com.storvix.backend.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.storvix.backend.entity.Folder;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +17,12 @@ public class FolderResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean isDeleted;
+
+    /** Frontend still reads Mongo-style `_id` in many places. */
+    @JsonProperty("_id")
+    public String get_id() {
+        return id;
+    }
 
     public static FolderResponse from(Folder folder) {
         return FolderResponse.builder()
