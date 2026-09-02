@@ -8,15 +8,19 @@ import lombok.Data;
 public class InitUploadRequest {
     @NotBlank(message = "File name is required")
     private String name;
-    
-    @NotBlank(message = "Original name is required")
+
+    /** Optional; defaults to name when omitted by the frontend. */
     private String originalName;
-    
+
     @NotBlank(message = "MIME type is required")
     private String mimeType;
-    
+
     @NotNull(message = "Size is required")
     private Long size;
-    
+
     private String folderId;
+
+    public String resolveOriginalName() {
+        return (originalName != null && !originalName.isBlank()) ? originalName : name;
+    }
 }

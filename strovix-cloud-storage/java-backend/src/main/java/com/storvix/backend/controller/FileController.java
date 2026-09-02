@@ -21,7 +21,7 @@ public class FileController {
 
     private final FileService fileService;
 
-    @PostMapping("/upload/init")
+    @PostMapping("/init-upload")
     public ResponseEntity<ApiResponse<Map<String, Object>>> initUpload(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody InitUploadRequest request) {
@@ -30,7 +30,7 @@ public class FileController {
                 .body(ApiResponse.created("Upload initialized", data));
     }
 
-    @PostMapping("/upload/complete")
+    @PostMapping("/complete-upload")
     public ResponseEntity<ApiResponse<FileResponse>> completeUpload(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody Map<String, String> body) {

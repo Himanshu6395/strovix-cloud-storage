@@ -34,7 +34,8 @@ public class FolderController {
     public ResponseEntity<ApiResponse<FolderContentsResponse>> getFolderContents(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable(required = false) String id) {
-        FolderContentsResponse contents = folderService.getFolderContents(userDetails.getUser().getId(), id);
+        String folderId = (id == null || id.isBlank() || "root".equalsIgnoreCase(id)) ? null : id;
+        FolderContentsResponse contents = folderService.getFolderContents(userDetails.getUser().getId(), folderId);
         return ResponseEntity.ok(ApiResponse.success(contents));
     }
 }

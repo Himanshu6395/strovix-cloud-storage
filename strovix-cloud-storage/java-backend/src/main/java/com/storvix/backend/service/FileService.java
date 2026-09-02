@@ -40,17 +40,19 @@ public class FileService {
                     .orElseThrow(() -> new AppException("Folder not found", HttpStatus.NOT_FOUND, "NOT_FOUND"));
         }
 
+        String originalName = request.resolveOriginalName();
+
         String extension = "";
-        int dotIndex = request.getOriginalName().lastIndexOf('.');
+        int dotIndex = originalName.lastIndexOf('.');
         if (dotIndex > 0) {
-            extension = request.getOriginalName().substring(dotIndex);
+            extension = originalName.substring(dotIndex);
         }
 
         String storageKey = "uploads/" + userId + "/" + UUID.randomUUID().toString() + extension;
         
         File file = new File();
         file.setName(request.getName());
-        file.setOriginalName(request.getOriginalName());
+        file.setOriginalName(originalName);
         file.setOwner(user);
         file.setFolder(folder);
         file.setStorageKey(storageKey);
@@ -68,6 +70,9 @@ public class FileService {
         result.put("fileId", file.getId());
         result.put("uploadUrl", uploadUrl);
         result.put("storageKey", storageKey);
+        result.put("provider", "s3");
+        result.put("method", "PUT");
+        result.put("headers", Map.of("Content-Type", request.getMimeType()));
         return result;
     }
 

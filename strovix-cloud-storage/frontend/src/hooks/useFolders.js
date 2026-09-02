@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 export function useFolderContents(folderId = 'root') {
   return useQuery({
     queryKey: ['folder-contents', folderId || 'root'],
-    queryFn: () => folderApi.contents(folderId || 'root').then((r) => r.data),
+    queryFn: () => folderApi.contents(folderId || 'root'),
   });
 }
 

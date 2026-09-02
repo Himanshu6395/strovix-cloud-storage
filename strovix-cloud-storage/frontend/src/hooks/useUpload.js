@@ -33,7 +33,8 @@ export function useUpload(folderId) {
             folderId: folderId && folderId !== 'root' ? folderId : null,
           });
 
-          const payload = init.data;
+          // Axios interceptor + fileApi already unwrap ApiResponse.data
+          const payload = init;
 
           if (payload.provider === 'local') {
             await fileApi.localUpload(
