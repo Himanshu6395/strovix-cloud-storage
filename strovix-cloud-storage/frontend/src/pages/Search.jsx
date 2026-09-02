@@ -4,6 +4,7 @@ import { useSearch } from '../hooks/useSearch.js';
 import { EmptyState, LoadingSpinner } from '../components/common/ui.jsx';
 import { formatDate } from '../utils/formatDate.js';
 import { getFileIcon } from '../utils/fileIcons.js';
+import { resourceId } from '../utils/resourceId.js';
 
 export default function Search() {
   const [params, setParams] = useSearchParams();
@@ -49,7 +50,7 @@ export default function Search() {
           const Icon = getFileIcon(item.mimeType, isFolder);
           return (
             <div
-              key={`${item.resourceType}-${item._id}`}
+              key={`${item.resourceType}-${resourceId(item)}`}
               className="flex items-center gap-3 rounded-xl border border-[var(--color-line)] bg-white/80 px-4 py-3 dark:bg-slate-800/80"
             >
               <Icon size={20} className={isFolder ? 'text-amber-500' : 'text-teal-600'} />

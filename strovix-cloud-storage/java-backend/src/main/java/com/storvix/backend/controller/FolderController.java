@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/folders")
 @RequiredArgsConstructor
@@ -39,11 +41,36 @@ public class FolderController {
         return ResponseEntity.ok(ApiResponse.success(contents));
     }
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<FolderResponse>> renameFolder(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String id,
+            @RequestBody Map<String, String> body) {
+        FolderResponse folder = folderService.renameFolder(userDetails.getUser().getId(), id, body.get("name"));
+        return ResponseEntity.ok(ApiResponse.success("Folder renamed", folder));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<FolderResponse>> softDeleteFolder(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable String id) {
         FolderResponse folder = folderService.softDeleteFolder(userDetails.getUser().getId(), id);
         return ResponseEntity.ok(ApiResponse.success("Folder moved to trash", folder));
+    }
+
+    @PostMapping("/{id}/restore")
+    public ResponseEntity<ApiResponse<FolderResponse>> restoreFolder(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String id) {
+        FolderResponse folder = folderService.restoreFolder(userDetails.getUser().getId(), id);
+        return ResponseEntity.ok(ApiResponse.success("Folder restored", folder));
+    }
+
+    @DeleteMapping("/{id}/permanent")
+    public ResponseEntity<ApiResponse<Map<String, Boolean>>> permanentDeleteFolder(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String id) {
+        Map<String, Boolean> result = folderService.permanentDeleteFolder(userDetails.getUser().getId(), id);
+        return ResponseEntity.ok(ApiResponse.success("Folder permanently deleted", result));
     }
 }

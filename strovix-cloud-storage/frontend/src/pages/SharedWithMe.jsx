@@ -3,11 +3,12 @@ import { shareApi } from '../services/share.api.js';
 import { EmptyState, LoadingSpinner } from '../components/common/ui.jsx';
 import { formatDate } from '../utils/formatDate.js';
 import { getFileIcon } from '../utils/fileIcons.js';
+import { resourceId } from '../utils/resourceId.js';
 
 export default function SharedWithMe() {
   const { data, isLoading } = useQuery({
     queryKey: ['shared-with-me'],
-    queryFn: () => shareApi.sharedWithMe().then((r) => r.data),
+    queryFn: () => shareApi.sharedWithMe(),
   });
 
   if (isLoading) return <LoadingSpinner label="Loading shared items..." />;
@@ -36,7 +37,7 @@ export default function SharedWithMe() {
                 const isFolder = Boolean(share.folder);
                 const Icon = getFileIcon(item?.mimeType, isFolder);
                 return (
-                  <tr key={share._id} className="border-b border-slate-100 dark:border-slate-700">
+                  <tr key={resourceId(share)} className="border-b border-slate-100 dark:border-slate-700">
                     <td className="px-4 py-3 text-slate-800 dark:text-slate-100">
                       <div className="flex items-center gap-2">
                         <Icon size={18} className={isFolder ? 'text-amber-500' : 'text-teal-600'} />

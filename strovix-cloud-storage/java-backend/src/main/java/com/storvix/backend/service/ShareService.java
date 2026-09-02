@@ -16,6 +16,7 @@ import com.storvix.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -218,6 +219,7 @@ public class ShareService {
         throw new AppException("Share not found", HttpStatus.NOT_FOUND, "NOT_FOUND");
     }
 
+    @Transactional(readOnly = true)
     public List<ShareResponse> getSharedWithMe(String userId) {
         List<Share> shares = shareRepository.findBySharedWithId(userId);
         return shares.stream()

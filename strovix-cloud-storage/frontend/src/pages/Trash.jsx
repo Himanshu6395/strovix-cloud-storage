@@ -4,13 +4,14 @@ import toast from 'react-hot-toast';
 import { trashApi } from '../services/publicLink.api.js';
 import { ConfirmModal, EmptyState, LoadingSpinner } from '../components/common/ui.jsx';
 import { formatDate } from '../utils/formatDate.js';
+import { resourceId } from '../utils/resourceId.js';
 
 export default function Trash() {
   const qc = useQueryClient();
   const [confirm, setConfirm] = useState(null);
   const { data, isLoading } = useQuery({
     queryKey: ['trash'],
-    queryFn: () => trashApi.list().then((r) => r.data),
+    queryFn: () => trashApi.list(),
   });
 
   const restore = useMutation({
@@ -54,31 +55,34 @@ export default function Trash() {
               </tr>
             </thead>
             <tbody>
-              {items.map((item) => (
-                <tr key={`${item.type}-${item.id}`} className="border-b border-slate-100 dark:border-slate-700">
-                  <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">{item.name}</td>
-                  <td className="px-4 py-3 capitalize text-slate-600 dark:text-slate-300">{item.type}</td>
-                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{formatDate(item.deletedAt)}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => restore.mutate({ id: item.id, type: item.type })}
-                        className="text-blue-700 hover:underline dark:text-blue-400"
-                      >
-                        Restore
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setConfirm(item)}
-                        className="text-red-600 hover:underline dark:text-red-400"
-                      >
-                        Delete forever
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {items.map((item) => {
+                const id = resourceId(item) || item.id;
+                return (
+                  <tr key={`${item.type}-${id}`} className="border-b border-slate-100 dark:border-slate-700">
+                    <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">{item.name}</td>
+                    <td className="px-4 py-3 capitalize text-slate-600 dark:text-slate-300">{item.type}</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{formatDate(item.deletedAt)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => restore.mutate({ id, type: item.type })}
+                          className="text-blue-700 hover:underline dark:text-blue-400"
+                        >
+                          Restore
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirm(item)}
+                          className="text-red-600 hover:underline dark:text-red-400"
+                        >
+                          Delete forever
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -91,7 +95,9 @@ export default function Trash() {
         message={`"${confirm?.name}" will be permanently deleted. This cannot be undone.`}
         confirmLabel="Delete forever"
         danger
-        onConfirm={() => permanent.mutate({ id: confirm.id, type: confirm.type })}
+        onConfirm={() =>
+          permanent.mutate({ id: resourceId(confirm) || confirm.id, type: confirm.type })
+        }
       />
     </div>
   );

@@ -4,13 +4,14 @@ import { starApi } from '../services/publicLink.api.js';
 import { EmptyState, LoadingSpinner } from '../components/common/ui.jsx';
 import { getFileIcon } from '../utils/fileIcons.js';
 import { formatDate } from '../utils/formatDate.js';
+import { resourceId } from '../utils/resourceId.js';
 import { StarOff } from 'lucide-react';
 
 export default function Starred() {
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ['starred'],
-    queryFn: () => starApi.list().then((r) => r.data),
+    queryFn: () => starApi.list(),
   });
 
   const unstar = useMutation({
@@ -36,14 +37,15 @@ export default function Starred() {
             const item = star.file || star.folder;
             const isFolder = Boolean(star.folder);
             const Icon = getFileIcon(item?.mimeType, isFolder);
+            const itemId = resourceId(item);
             return (
-              <div key={star._id} className="rounded-2xl border border-[var(--color-line)] bg-white/80 p-4 dark:bg-slate-800/80">
+              <div key={resourceId(star)} className="rounded-2xl border border-[var(--color-line)] bg-white/80 p-4 dark:bg-slate-800/80">
                 <div className="mb-3 flex items-start justify-between">
                   <Icon size={28} className={isFolder ? 'text-amber-500' : 'text-teal-600'} />
                   <button
                     type="button"
                     onClick={() =>
-                      unstar.mutate(isFolder ? { folderId: item._id } : { fileId: item._id })
+                      unstar.mutate(isFolder ? { folderId: itemId } : { fileId: itemId })
                     }
                     className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
                   >

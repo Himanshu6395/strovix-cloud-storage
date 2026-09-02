@@ -6,7 +6,7 @@ import { resolveApiUrl } from '../utils/apiUrl.js';
 export function useFiles(params) {
   return useQuery({
     queryKey: ['files', params],
-    queryFn: () => fileApi.list(params).then((r) => r.data),
+    queryFn: () => fileApi.list(params),
   });
 }
 

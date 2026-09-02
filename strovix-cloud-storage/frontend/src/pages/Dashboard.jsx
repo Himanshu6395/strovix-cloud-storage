@@ -23,6 +23,7 @@ import { LoadingSpinner } from '../components/common/ui.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { Button } from '../components/ui/Button.jsx';
 import { Card } from '../components/ui/Card.jsx';
+import { resourceId } from '../utils/resourceId.js';
 
 function fileIcon(mime = '', name = '') {
   const lower = `${mime} ${name}`.toLowerCase();
@@ -216,7 +217,7 @@ export default function Dashboard() {
               {recentFiles.map((file) => {
                 const { Icon, tone } = fileIcon(file.mimeType, file.name);
                 return (
-                  <li key={file.id || file._id}>
+                  <li key={resourceId(file)}>
                     <button
                       type="button"
                       onClick={() => navigate('/drive')}
@@ -313,7 +314,7 @@ export default function Dashboard() {
                   const resource = item.file || item.folder;
                   const isFolder = Boolean(item.folder);
                   return (
-                    <li key={item.id || item._id}>
+                    <li key={resourceId(item)}>
                       <button
                         type="button"
                         onClick={() => navigate(isFolder ? '/drive' : '/starred')}
@@ -351,7 +352,7 @@ export default function Dashboard() {
           <ul className="grid gap-2 sm:grid-cols-2">
             {activities.slice(0, 6).map((item) => (
               <li
-                key={item.id || item._id}
+                key={resourceId(item)}
                 className="flex items-start gap-3 rounded-2xl border border-[var(--color-line)] bg-slate-50/60 px-3 py-3 dark:bg-slate-800/40"
               >
                 <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-[var(--color-accent)]" />

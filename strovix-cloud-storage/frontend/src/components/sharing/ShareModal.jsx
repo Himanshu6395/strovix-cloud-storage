@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { Modal } from '../common/ui.jsx';
 import { shareApi } from '../../services/share.api.js';
 import { publicLinkApi } from '../../services/publicLink.api.js';
+import { resourceId } from '../../utils/resourceId.js';
 import { Copy, Link2, Users, Send } from 'lucide-react';
 
 const shareInputClass =
@@ -18,13 +19,13 @@ export function ShareModal({ open, onClose, resource }) {
   const [createdLink, setCreatedLink] = useState(null);
   const qc = useQueryClient();
 
-  const resourceId = resource?.id || resource?._id;
+  const currentResourceId = resourceId(resource);
   const isFile = resource?.type === 'file' || Boolean(resource?.mimeType);
 
   const sharesQuery = useQuery({
-    queryKey: ['shares', resourceId],
-    queryFn: () => shareApi.list(resourceId).then((r) => r.data),
-    enabled: open && Boolean(resourceId),
+    queryKey: ['shares', currentResourceId],
+    queryFn: () => shareApi.list(currentResourceId),
+    enabled: open && Boolean(currentResourceId),
   });
 
   useEffect(() => {
@@ -42,11 +43,11 @@ export function ShareModal({ open, onClose, resource }) {
       shareApi.create({
         email,
         role,
-        ...(isFile ? { fileId: resourceId } : { folderId: resourceId }),
+        ...(isFile ? { fileId: currentResourceId } : { folderId: currentResourceId }),
       }),
     onSuccess: (res) => {
-      const emailSent = res?.data?.emailSent;
-      const invited = res?.data?.invited;
+      const emailSent = res?.emailSent;
+      const invited = res?.invited;
       const recipient = email.trim();
       if (invited) {
         toast.success(
@@ -69,7 +70,7 @@ export function ShareModal({ open, onClose, resource }) {
         );
       }
       setEmail('');
-      qc.invalidateQueries({ queryKey: ['shares', resourceId] });
+      qc.invalidateQueries({ queryKey: ['shares', currentResourceId] });
     },
     onError: (err) => toast.error(err.message),
   });
@@ -77,7 +78,7 @@ export function ShareModal({ open, onClose, resource }) {
   const updateMutation = useMutation({
     mutationFn: ({ shareId, role: nextRole }) => shareApi.update(shareId, nextRole),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['shares', resourceId] });
+      qc.invalidateQueries({ queryKey: ['shares', currentResourceId] });
       toast.success('Permission updated');
     },
     onError: (err) => toast.error(err.message),
@@ -86,7 +87,7 @@ export function ShareModal({ open, onClose, resource }) {
   const removeMutation = useMutation({
     mutationFn: (shareId) => shareApi.remove(shareId),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['shares', resourceId] });
+      qc.invalidateQueries({ queryKey: ['shares', currentResourceId] });
       toast.success('Share removed');
     },
     onError: (err) => toast.error(err.message),
@@ -95,14 +96,14 @@ export function ShareModal({ open, onClose, resource }) {
   const linkMutation = useMutation({
     mutationFn: () =>
       publicLinkApi.create({
-        ...(isFile ? { fileId: resourceId } : { folderId: resourceId }),
+        ...(isFile ? { fileId: currentResourceId } : { folderId: currentResourceId }),
         expiresAt: expiresAt || null,
         password: password || null,
         ...(linkEmail.trim() ? { recipientEmail: linkEmail.trim() } : {}),
       }),
     onSuccess: (res) => {
-      setCreatedLink(res.data);
-      if (res.data?.emailSent) {
+      setCreatedLink(res);
+      if (res?.emailSent) {
         toast.success(`Public link created and emailed to ${linkEmail.trim()}`);
       } else if (linkEmail.trim()) {
         toast.success(res?.message || 'Public link created, but email could not be sent.');
@@ -114,9 +115,9 @@ export function ShareModal({ open, onClose, resource }) {
   });
 
   const emailLinkMutation = useMutation({
-    mutationFn: () => publicLinkApi.email(createdLink.id, linkEmail.trim()),
+    mutationFn: () => publicLinkApi.email(resourceId(createdLink), linkEmail.trim()),
     onSuccess: (res) => {
-      if (res?.data?.emailSent) {
+      if (res?.emailSent) {
         toast.success(`Public share link emailed to ${linkEmail.trim()}`);
       } else {
         toast.error(res?.message || 'Could not send email');
@@ -190,10 +191,11 @@ export function ShareModal({ open, onClose, resource }) {
                 const showName = Boolean(name) && !isPending;
                 const primary = showName ? name : email;
                 const secondary = showName && email && name.toLowerCase() !== email.toLowerCase() ? email : null;
+                const shareId = resourceId(share);
 
                 return (
                   <div
-                    key={share._id}
+                    key={shareId}
                     className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-3 transition hover:bg-white hover:shadow-xs dark:border-slate-700/80 dark:bg-slate-800/50 dark:hover:bg-slate-800"
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -222,7 +224,7 @@ export function ShareModal({ open, onClose, resource }) {
                         <select
                           value={share.role}
                           onChange={(e) =>
-                            updateMutation.mutate({ shareId: share._id, role: e.target.value })
+                            updateMutation.mutate({ shareId, role: e.target.value })
                           }
                           className="h-9 min-w-[5.5rem] rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 outline-none hover:border-slate-300 cursor-pointer dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-slate-500"
                         >
@@ -231,7 +233,7 @@ export function ShareModal({ open, onClose, resource }) {
                         </select>
                         <button
                           type="button"
-                          onClick={() => removeMutation.mutate(share._id)}
+                          onClick={() => removeMutation.mutate(shareId)}
                           className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 cursor-pointer"
                         >
                           Remove
@@ -341,7 +343,7 @@ export function ShareModal({ open, onClose, resource }) {
               <button
                 type="button"
                 onClick={async () => {
-                  await publicLinkApi.update(createdLink.id, { isActive: false });
+                  await publicLinkApi.update(resourceId(createdLink), { isActive: false });
                   toast.success('Link disabled');
                   setCreatedLink(null);
                 }}

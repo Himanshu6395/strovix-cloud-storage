@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { aiApi } from '../../services/ai.api.js';
+import { resourceId } from '../../utils/resourceId.js';
 
 const SUPPORTED_EXTENSIONS = new Set([
   'pdf',
@@ -66,7 +67,7 @@ export function AIFileAssistantDrawer({ open, onClose, file }) {
 
   const chatEndRef = useRef(null);
 
-  const fileId = file?._id || file?.id;
+  const fileId = resourceId(file);
   const fileSupported = isSupported(file);
 
   // Lock body scroll & fetch chat history when opened
@@ -95,8 +96,9 @@ export function AIFileAssistantDrawer({ open, onClose, file }) {
   const fetchConversation = async () => {
     try {
       const res = await aiApi.getConversation(fileId);
-      if (res.data?.messages) {
-        setMessages(res.data.messages);
+      const messages = res?.messages || res?.data?.messages;
+      if (messages) {
+        setMessages(messages);
       }
     } catch {
       // Ignore initial history error if none exists
@@ -109,7 +111,7 @@ export function AIFileAssistantDrawer({ open, onClose, file }) {
     setLoadingAction('Summarizing document...');
     try {
       const res = await aiApi.summarize(fileId);
-      setSummaryData(res.data?.summary);
+      setSummaryData(res?.summary || res?.data?.summary);
       if (res.cached) toast.success('Loaded from cache');
     } catch (err) {
       toast.error(err.message || 'Failed to generate summary');
@@ -124,7 +126,7 @@ export function AIFileAssistantDrawer({ open, onClose, file }) {
     setLoadingAction('Generating short summary...');
     try {
       const res = await aiApi.shortSummary(fileId);
-      setShortSummaryData(res.data?.shortSummary);
+      setShortSummaryData(res?.shortSummary || res?.data?.shortSummary);
       if (res.cached) toast.success('Loaded from cache');
     } catch (err) {
       toast.error(err.message || 'Failed to generate short summary');
@@ -139,7 +141,7 @@ export function AIFileAssistantDrawer({ open, onClose, file }) {
     setLoadingAction('Extracting key points...');
     try {
       const res = await aiApi.keyPoints(fileId);
-      setKeyPointsData(res.data?.points || []);
+      setKeyPointsData(res?.points || res?.data?.points || []);
       if (res.cached) toast.success('Loaded from cache');
     } catch (err) {
       toast.error(err.message || 'Failed to extract key points');
@@ -154,7 +156,7 @@ export function AIFileAssistantDrawer({ open, onClose, file }) {
     setLoadingAction('Extracting structured info...');
     try {
       const res = await aiApi.extractInformation(fileId);
-      setExtractedData(res.data);
+      setExtractedData(res?.data || res);
       if (res.cached) toast.success('Loaded from cache');
     } catch (err) {
       toast.error(err.message || 'Failed to extract information');
@@ -177,8 +179,9 @@ export function AIFileAssistantDrawer({ open, onClose, file }) {
 
     try {
       const res = await aiApi.ask(fileId, userQ);
-      if (res.data?.messages) {
-        setMessages(res.data.messages);
+      const messages = res?.messages || res?.data?.messages;
+      if (messages) {
+        setMessages(messages);
       }
     } catch (err) {
       toast.error(err.message || 'Failed to answer question');

@@ -68,7 +68,7 @@ public class TrashController {
         throw new AppException("Item not found in trash", HttpStatus.NOT_FOUND, "NOT_FOUND");
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping({"/{id}", "/{id}/permanent"})
     public ResponseEntity<ApiResponse<Object>> permanentDelete(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable String id,

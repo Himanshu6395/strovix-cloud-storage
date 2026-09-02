@@ -51,11 +51,36 @@ public class FileController {
         return ResponseEntity.ok(ApiResponse.success(body));
     }
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<FileResponse>> renameFile(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String id,
+            @RequestBody Map<String, String> body) {
+        FileResponse file = fileService.renameFile(userDetails.getUser().getId(), id, body.get("name"));
+        return ResponseEntity.ok(ApiResponse.success("File renamed", file));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<FileResponse>> softDeleteFile(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable String id) {
         FileResponse file = fileService.softDeleteFile(userDetails.getUser().getId(), id);
         return ResponseEntity.ok(ApiResponse.success("File moved to trash", file));
+    }
+
+    @PostMapping("/{id}/restore")
+    public ResponseEntity<ApiResponse<FileResponse>> restoreFile(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String id) {
+        FileResponse file = fileService.restoreFile(userDetails.getUser().getId(), id);
+        return ResponseEntity.ok(ApiResponse.success("File restored", file));
+    }
+
+    @DeleteMapping("/{id}/permanent")
+    public ResponseEntity<ApiResponse<Map<String, Boolean>>> permanentDeleteFile(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String id) {
+        Map<String, Boolean> result = fileService.permanentDeleteFile(userDetails.getUser().getId(), id);
+        return ResponseEntity.ok(ApiResponse.success("File permanently deleted", result));
     }
 }

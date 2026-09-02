@@ -1,5 +1,6 @@
 package com.storvix.backend.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -15,4 +16,9 @@ public class TrashItemResponse {
     private String parentFolder;
     private String mimeType;
     private Long size;
+
+    @JsonProperty("_id")
+    public String get_id() {
+        return id;
+    }
 }

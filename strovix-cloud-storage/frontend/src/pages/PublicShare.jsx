@@ -5,6 +5,7 @@ import { publicLinkApi } from '../services/publicLink.api.js';
 import { LoadingSpinner } from '../components/common/ui.jsx';
 import { formatFileSize } from '../utils/formatFileSize.js';
 import { resolveApiUrl } from '../utils/apiUrl.js';
+import { resourceId } from '../utils/resourceId.js';
 
 export default function PublicShare() {
   const { token } = useParams();
@@ -96,12 +97,12 @@ export default function PublicShare() {
           <div className="mt-4 space-y-2">
             <p className="text-sm text-slate-500">Folder contents</p>
             {(resource.folders || []).map((f) => (
-              <div key={f._id} className="rounded-xl bg-slate-50 px-3 py-2 text-sm">
+              <div key={resourceId(f)} className="rounded-xl bg-slate-50 px-3 py-2 text-sm">
                 📁 {f.name}
               </div>
             ))}
             {(resource.files || []).map((f) => (
-              <div key={f._id} className="rounded-xl bg-slate-50 px-3 py-2 text-sm">
+              <div key={resourceId(f)} className="rounded-xl bg-slate-50 px-3 py-2 text-sm">
                 📄 {f.name} · {formatFileSize(f.size)}
               </div>
             ))}

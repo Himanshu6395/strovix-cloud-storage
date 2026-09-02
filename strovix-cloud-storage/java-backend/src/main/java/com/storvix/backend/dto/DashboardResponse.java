@@ -1,5 +1,6 @@
 package com.storvix.backend.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
@@ -36,6 +37,11 @@ public class DashboardResponse {
         private String id;
         private FileResponse file;
         private FolderResponse folder;
+
+        @JsonProperty("_id")
+        public String get_id() {
+            return id;
+        }
     }
 
     @Data
@@ -47,5 +53,10 @@ public class DashboardResponse {
         private String resourceId;
         private Map<String, Object> metadata;
         private java.time.LocalDateTime createdAt;
+
+        @JsonProperty("_id")
+        public String get_id() {
+            return id;
+        }
     }
 }

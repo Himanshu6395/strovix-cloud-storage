@@ -106,6 +106,22 @@ public class FileService {
         return result;
     }
 
+    public FileResponse renameFile(String userId, String fileId, String name) {
+        if (name == null || name.isBlank()) {
+            throw new AppException("Name is required", HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
+        }
+
+        File file = fileRepository.findById(fileId)
+                .orElseThrow(() -> new AppException("File not found", HttpStatus.NOT_FOUND, "NOT_FOUND"));
+
+        if (!file.getOwner().getId().equals(userId)) {
+            throw new AppException("Forbidden", HttpStatus.FORBIDDEN, "FORBIDDEN");
+        }
+
+        file.setName(name.trim());
+        return FileResponse.from(fileRepository.save(file));
+    }
+
     public FileResponse softDeleteFile(String userId, String fileId) {
         File file = fileRepository.findById(fileId)
                 .orElseThrow(() -> new AppException("File not found", HttpStatus.NOT_FOUND, "NOT_FOUND"));

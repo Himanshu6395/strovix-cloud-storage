@@ -131,6 +131,22 @@ public class FolderService {
         return ids;
     }
 
+    public FolderResponse renameFolder(String userId, String folderId, String name) {
+        if (name == null || name.isBlank()) {
+            throw new AppException("Name is required", HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
+        }
+
+        Folder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new AppException("Folder not found", HttpStatus.NOT_FOUND, "NOT_FOUND"));
+
+        if (!folder.getOwner().getId().equals(userId)) {
+            throw new AppException("Forbidden", HttpStatus.FORBIDDEN, "FORBIDDEN");
+        }
+
+        folder.setName(name.trim());
+        return FolderResponse.from(folderRepository.save(folder));
+    }
+
     public FolderResponse softDeleteFolder(String userId, String folderId) {
         Folder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new AppException("Folder not found", HttpStatus.NOT_FOUND, "NOT_FOUND"));

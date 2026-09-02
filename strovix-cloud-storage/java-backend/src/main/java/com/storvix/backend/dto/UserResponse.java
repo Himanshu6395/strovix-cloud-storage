@@ -1,5 +1,6 @@
 package com.storvix.backend.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.storvix.backend.entity.User;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +20,11 @@ public class UserResponse {
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    @JsonProperty("_id")
+    public String get_id() {
+        return id;
+    }
 
     public static UserResponse from(User user) {
         return UserResponse.builder()
