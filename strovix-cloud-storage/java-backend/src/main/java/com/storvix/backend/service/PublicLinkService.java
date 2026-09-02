@@ -93,7 +93,7 @@ public class PublicLinkService {
         boolean emailSent = false;
         String recipientEmail = asString(body.get("recipientEmail"));
         if (recipientEmail != null && !recipientEmail.isBlank()) {
-            emailService.sendPublicLinkEmail(
+            emailSent = emailService.sendPublicLinkEmail(
                     recipientEmail.trim(),
                     null,
                     user.getName(),
@@ -101,10 +101,9 @@ public class PublicLinkService {
                     resourceType,
                     link.getToken()
             );
-            emailSent = true;
         }
 
-        return PublicLinkResponse.from(link, emailSent);
+        return PublicLinkResponse.from(link, emailSent, emailService.publicShareUrl(link.getToken()));
     }
 
     @Transactional(readOnly = true)
@@ -182,7 +181,7 @@ public class PublicLinkService {
                 link.setIsActive(Boolean.parseBoolean(value.toString()));
             }
         }
-        return PublicLinkResponse.from(publicLinkRepository.save(link), false);
+        return PublicLinkResponse.from(publicLinkRepository.save(link), false, emailService.publicShareUrl(link.getToken()));
     }
 
     @Transactional
@@ -204,7 +203,7 @@ public class PublicLinkService {
             resourceType = "folder";
         }
 
-        emailService.sendPublicLinkEmail(
+        boolean emailSent = emailService.sendPublicLinkEmail(
                 email.trim(),
                 null,
                 user.getName(),
@@ -214,8 +213,12 @@ public class PublicLinkService {
         );
 
         Map<String, Object> result = new HashMap<>();
-        result.put("emailSent", true);
+        result.put("emailSent", emailSent);
         result.put("id", link.getId());
+        result.put("url", emailService.publicShareUrl(link.getToken()));
+        if (!emailSent) {
+            result.put("message", "Could not send email. Check BREVO_API_KEY and sender settings.");
+        }
         return result;
     }
 

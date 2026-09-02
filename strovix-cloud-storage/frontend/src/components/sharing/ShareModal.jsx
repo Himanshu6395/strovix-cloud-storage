@@ -10,6 +10,13 @@ import { Copy, Link2, Users, Send } from 'lucide-react';
 const shareInputClass =
   'box-border min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm leading-normal text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-teal-500 dark:focus:ring-teal-500/30';
 
+function absoluteShareUrl(url) {
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  const path = url.startsWith('/') ? url : `/${url}`;
+  return `${window.location.origin}${path}`;
+}
+
 export function ShareModal({ open, onClose, resource }) {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('VIEWER');
@@ -106,7 +113,7 @@ export function ShareModal({ open, onClose, resource }) {
       if (res?.emailSent) {
         toast.success(`Public link created and emailed to ${linkEmail.trim()}`);
       } else if (linkEmail.trim()) {
-        toast.success(res?.message || 'Public link created, but email could not be sent.');
+        toast.error(res?.message || 'Public link created, but email could not be sent. Check Brevo settings.');
       } else {
         toast.success('Public link created');
       }
@@ -120,7 +127,7 @@ export function ShareModal({ open, onClose, resource }) {
       if (res?.emailSent) {
         toast.success(`Public share link emailed to ${linkEmail.trim()}`);
       } else {
-        toast.error(res?.message || 'Could not send email');
+        toast.error(res?.message || 'Could not send email. Check BREVO_API_KEY on the server.');
       }
     },
     onError: (err) => toast.error(err.message),
@@ -326,13 +333,13 @@ export function ShareModal({ open, onClose, resource }) {
             <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 animate-fade-up dark:border-slate-600 dark:bg-slate-800">
               <input
                 readOnly
-                value={createdLink.url}
+                value={absoluteShareUrl(createdLink.url)}
                 className="min-w-0 flex-1 truncate bg-transparent text-xs font-mono font-medium text-slate-700 outline-none px-1 dark:text-slate-200"
               />
               <button
                 type="button"
                 onClick={() => {
-                  navigator.clipboard.writeText(createdLink.url);
+                  navigator.clipboard.writeText(absoluteShareUrl(createdLink.url));
                   toast.success('Copied to clipboard');
                 }}
                 className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition cursor-pointer dark:hover:bg-slate-700 dark:hover:text-slate-100"

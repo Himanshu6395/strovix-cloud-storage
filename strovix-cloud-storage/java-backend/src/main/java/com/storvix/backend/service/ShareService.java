@@ -94,13 +94,15 @@ public class ShareService {
                 invite = shareInviteRepository.save(invite);
             }
 
-            emailService.sendShareInviteEmail(normalizedEmail, sender.getName(), resourceName, resourceType, request.getRole(), invite.getToken());
+            boolean emailSent = emailService.sendShareInviteEmail(normalizedEmail, sender.getName(), resourceName, resourceType, request.getRole(), invite.getToken());
 
             response.put("shared", true);
             response.put("invited", true);
-            response.put("emailSent", true);
+            response.put("emailSent", emailSent);
             response.put("invite", ShareResponse.from(invite));
-            response.put("message", "Invitation sent. They can access it after creating a Nimbus account.");
+            response.put("message", emailSent
+                    ? "Invitation sent. They can access it after creating an account."
+                    : "Invitation saved, but email could not be sent. Check BREVO_API_KEY.");
         } else {
             if (target.getId().equals(ownerId)) {
                 throw new AppException("Cannot share with the owner", HttpStatus.BAD_REQUEST, "INVALID_SHARE");
@@ -141,17 +143,20 @@ public class ShareService {
                 }
             }
 
+            boolean emailSent;
             if ("file".equals(resourceType)) {
-                emailService.sendFileShareEmail(normalizedEmail, target.getName(), sender.getName(), resourceName, request.getRole(), file.getId());
+                emailSent = emailService.sendFileShareEmail(normalizedEmail, target.getName(), sender.getName(), resourceName, request.getRole(), file.getId());
             } else {
-                emailService.sendFolderShareEmail(normalizedEmail, target.getName(), sender.getName(), resourceName, request.getRole(), folder.getId());
+                emailSent = emailService.sendFolderShareEmail(normalizedEmail, target.getName(), sender.getName(), resourceName, request.getRole(), folder.getId());
             }
 
             response.put("shared", true);
             response.put("invited", false);
-            response.put("emailSent", true);
+            response.put("emailSent", emailSent);
             response.put("share", ShareResponse.from(share));
-            response.put("message", "Shared successfully.");
+            response.put("message", emailSent
+                    ? "Shared successfully."
+                    : "Shared successfully, but notification email could not be sent. Check BREVO_API_KEY.");
         }
 
         return response;

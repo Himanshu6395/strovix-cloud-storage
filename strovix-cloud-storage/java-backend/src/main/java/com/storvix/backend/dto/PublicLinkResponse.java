@@ -23,11 +23,11 @@ public class PublicLinkResponse {
         return id;
     }
 
-    public static PublicLinkResponse from(PublicLink link, boolean emailSent) {
+    public static PublicLinkResponse from(PublicLink link, boolean emailSent, String absoluteUrl) {
         return PublicLinkResponse.builder()
                 .id(link.getId())
                 .token(link.getToken())
-                .url("/share/" + link.getToken())
+                .url(absoluteUrl)
                 .isActive(link.getIsActive())
                 .emailSent(emailSent)
                 .expiresAt(link.getExpiresAt())
